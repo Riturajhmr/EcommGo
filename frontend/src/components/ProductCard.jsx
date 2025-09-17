@@ -6,8 +6,8 @@ export default function ProductCard({ product }) {
   const { add } = useCart()
   const [isWishlisted, setIsWishlisted] = useState(false)
   
-  // Handle different product ID field names from backend
-  const productId = product.product_id || product._id || product.Product_ID || product.id
+  // Use MongoDB _id as the primary identifier
+  const productId = product._id
   
   // Create a fallback SVG image instead of using placeholder.com
   const fallbackImage = `data:image/svg+xml;base64,${btoa(`
@@ -54,7 +54,7 @@ export default function ProductCard({ product }) {
         {/* Wishlist Icon */}
         <button
           onClick={toggleWishlist}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all duration-200"
+          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-all duration-200 cursor-pointer"
         >
           <svg 
             className={`w-4 h-4 transition-colors duration-200 ${
@@ -116,7 +116,7 @@ export default function ProductCard({ product }) {
           {/* Add to Cart Button */}
           <button
             onClick={() => add({ product_id: productId, quantity: 1 })}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-lg"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-lg cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />

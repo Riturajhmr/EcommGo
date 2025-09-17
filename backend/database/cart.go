@@ -47,7 +47,8 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 		Price:        int(*product.Price), // Convert uint64 to int
 		Rating:       rating,
 		Image:        product.Image,
-		Quantity:     quantity, // Use the passed quantity
+		Quantity:     quantity,  // Use the passed quantity
+		ID:           productID, // Store the MongoDB _id for consistency
 	}
 
 	id, err := primitive.ObjectIDFromHex(userID)
@@ -67,7 +68,7 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 	// Check if product already exists in cart
 	productExists := false
 	for i, cartItem := range user.UserCart {
-		if cartItem.Product_ID == product.Product_ID {
+		if cartItem.ID == productID {
 			// Product exists, update quantity using array index
 			productExists = true
 			filter := bson.M{"_id": id}
@@ -77,6 +78,7 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 				log.Println("Error updating existing cart item quantity:", err)
 				return ErrCantUpdateUser
 			}
+			log.Printf("Updated existing cart item quantity for product %s by %d", product.Product_ID, quantity)
 			break
 		}
 	}
@@ -90,6 +92,7 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 			log.Println("Error adding new cart item:", err)
 			return ErrCantUpdateUser
 		}
+		log.Printf("Added new cart item for product %s with quantity %d", product.Product_ID, quantity)
 	}
 
 	return nil
@@ -101,7 +104,7 @@ func RemoveCartItem(ctx context.Context, prodCollection, userCollection *mongo.C
 		log.Println(err)
 		return ErrUserIDIsNotValid
 	}
-	
+
 	// First get the product to get its string Product_ID
 	var product models.Product
 	err = prodCollection.FindOne(ctx, bson.M{"_id": productID}).Decode(&product)
@@ -109,14 +112,64 @@ func RemoveCartItem(ctx context.Context, prodCollection, userCollection *mongo.C
 		log.Println(err)
 		return ErrProductNotFound
 	}
-	
+
 	filter := bson.D{primitive.E{Key: "_id", Value: id}}
-	// Use the string Product_ID for matching cart items
-	update := bson.M{"$pull": bson.M{"usercart": bson.M{"product_id": product.Product_ID}}}
+	// Use the MongoDB _id for matching cart items
+	update := bson.M{"$pull": bson.M{"usercart": bson.M{"_id": productID}}}
 	_, err = userCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return ErrCantRemoveItem
 	}
+	return nil
+}
+
+func UpdateCartItem(ctx context.Context, prodCollection, userCollection *mongo.Collection, productID primitive.ObjectID, userID string, quantity int) error {
+	// First get the product to get its string Product_ID
+	var product models.Product
+	err := prodCollection.FindOne(ctx, bson.M{"_id": productID}).Decode(&product)
+	if err != nil {
+		log.Println("Error finding product:", err)
+		return ErrProductNotFound
+	}
+
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Println("Error converting userID to ObjectID:", err)
+		return ErrUserIDIsNotValid
+	}
+
+	// First, get the user to find the cart item index
+	var user models.User
+	err = userCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
+	if err != nil {
+		log.Println("Error finding user:", err)
+		return ErrUserIDIsNotValid
+	}
+
+	// Find the cart item index
+	itemIndex := -1
+	for i, cartItem := range user.UserCart {
+		if cartItem.ID == productID {
+			itemIndex = i
+			break
+		}
+	}
+
+	if itemIndex == -1 {
+		log.Printf("Product %s not found in user's cart", product.Product_ID)
+		return ErrCantFindProduct
+	}
+
+	// Update the quantity using array index
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{fmt.Sprintf("usercart.%d.quantity", itemIndex): quantity}}
+	_, err = userCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Println("Error updating cart item quantity:", err)
+		return ErrCantUpdateUser
+	}
+
+	log.Printf("Updated cart item quantity for product %s to %d", product.Product_ID, quantity)
 	return nil
 }
 

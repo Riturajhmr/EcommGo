@@ -56,7 +56,7 @@ func main() {
 		// Cart routes (protected)
 		api.GET("/cart", middleware.Authentication(), app.GetCartModern())
 		api.POST("/cart/add", middleware.Authentication(), app.AddToCartModern())
-		api.PUT("/cart/items/:id", middleware.Authentication(), controllers.UpdateCartItem())
+		api.PUT("/cart/items/:id", middleware.Authentication(), app.UpdateCartItemModern())
 		api.DELETE("/cart/items/:id", middleware.Authentication(), app.RemoveFromCartModern())
 		api.DELETE("/cart", middleware.Authentication(), app.ClearCartModern())
 		api.POST("/cart/instantbuy", middleware.Authentication(), app.InstantBuyModern())

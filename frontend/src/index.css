@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Global button cursor pointer */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 /* Auto-scrolling animation for featured products */
 @keyframes scroll {
   0% {

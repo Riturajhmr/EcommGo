@@ -49,9 +49,26 @@ export function CartProvider({ children }) {
         console.error('Token is missing or empty:', token)
         throw new Error('User not authenticated')
       }
-      await addToCart({ product_id, quantity })
-      const data = await getCart()
-      setItems(Array.isArray(data?.items) ? data.items : [])
+      
+      try {
+        console.log('Calling addToCart API with:', { product_id, quantity })
+        const result = await addToCart({ product_id, quantity })
+        console.log('AddToCart API result:', result)
+        
+        console.log('Fetching updated cart...')
+        const data = await getCart()
+        console.log('Updated cart data:', data)
+        setItems(Array.isArray(data?.items) ? data.items : [])
+        console.log('Cart items updated:', Array.isArray(data?.items) ? data.items : [])
+      } catch (error) {
+        console.error('Error in add to cart:', error)
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+        throw error
+      }
     },
     async instantBuy(product_id, quantity = 1) {
       console.log('CartContext instantBuy called with:', { product_id, quantity, token, tokenLength: token?.length })
@@ -68,20 +85,56 @@ export function CartProvider({ children }) {
       setItems(Array.isArray(data?.items) ? data.items : [])
     },
     async update(id, quantity) {
+      console.log('CartContext update called with:', { id, quantity, token, tokenLength: token?.length })
       if (!token) {
         throw new Error('User not authenticated')
       }
-      await updateCartItem({ id, quantity })
-      const data = await getCart()
-      setItems(Array.isArray(data?.items) ? data.items : [])
+      
+      try {
+        console.log('Calling updateCartItem API with:', { id, quantity })
+        const result = await updateCartItem({ id, quantity })
+        console.log('UpdateCartItem API result:', result)
+        
+        console.log('Fetching updated cart...')
+        const data = await getCart()
+        console.log('Updated cart data:', data)
+        setItems(Array.isArray(data?.items) ? data.items : [])
+        console.log('Cart items updated:', Array.isArray(data?.items) ? data.items : [])
+      } catch (error) {
+        console.error('Error in update cart item:', error)
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+        throw error
+      }
     },
     async remove(id) {
+      console.log('CartContext remove called with:', { id, token, tokenLength: token?.length })
       if (!token) {
         throw new Error('User not authenticated')
       }
-      await removeCartItem(id)
-      const data = await getCart()
-      setItems(Array.isArray(data?.items) ? data.items : [])
+      
+      try {
+        console.log('Calling removeCartItem API with:', { id })
+        const result = await removeCartItem(id)
+        console.log('RemoveCartItem API result:', result)
+        
+        console.log('Fetching updated cart...')
+        const data = await getCart()
+        console.log('Updated cart data:', data)
+        setItems(Array.isArray(data?.items) ? data.items : [])
+        console.log('Cart items updated:', Array.isArray(data?.items) ? data.items : [])
+      } catch (error) {
+        console.error('Error in remove cart item:', error)
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+        throw error
+      }
     },
     async clear() {
       if (!token) {

@@ -12,19 +12,42 @@ export const getCart = async () => {
 }
 
 export const addToCart = async ({ product_id, quantity = 1 }) => {
-  // Use modern route with proper authentication
-  const { data } = await api.post('/cart/add', { product_id, quantity })
-  return data
+  console.log('addToCart API called with:', { product_id, quantity })
+  try {
+    const { data } = await api.post('/cart/add', { product_id, quantity })
+    console.log('addToCart API response:', data)
+    return data
+  } catch (error) {
+    console.error('addToCart API error:', error)
+    console.error('Error response:', error.response?.data)
+    throw error
+  }
 }
 
 export const updateCartItem = async ({ id, quantity }) => {
-  const { data } = await api.put(`/cart/items/${id}`, { quantity })
-  return data
+  console.log('updateCartItem API called with:', { id, quantity })
+  try {
+    const { data } = await api.put(`/cart/items/${id}`, { quantity })
+    console.log('updateCartItem API response:', data)
+    return data
+  } catch (error) {
+    console.error('updateCartItem API error:', error)
+    console.error('Error response:', error.response?.data)
+    throw error
+  }
 }
 
 export const removeCartItem = async (id) => {
-  const { data } = await api.delete(`/cart/items/${id}`)
-  return data
+  console.log('removeCartItem API called with:', { id })
+  try {
+    const { data } = await api.delete(`/cart/items/${id}`)
+    console.log('removeCartItem API response:', data)
+    return data
+  } catch (error) {
+    console.error('removeCartItem API error:', error)
+    console.error('Error response:', error.response?.data)
+    throw error
+  }
 }
 
 export const clearCart = async () => {

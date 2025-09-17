@@ -41,12 +41,13 @@ type Product struct {
 }
 
 type ProductUser struct {
-	Product_ID   string  `bson:"product_id" json:"product_id"`
-	Product_Name *string `json:"product_name" bson:"product_name"`
-	Price        int     `json:"price"  bson:"price"`
-	Rating       *uint   `json:"rating"  bson:"rating"`
-	Image        *string `json:"image"  bson:"image"`
-	Quantity     int     `json:"quantity" bson:"quantity"`
+	ID           primitive.ObjectID `bson:"_id" json:"_id"`
+	Product_ID   string             `bson:"product_id" json:"product_id"`
+	Product_Name *string            `json:"product_name" bson:"product_name"`
+	Price        int                `json:"price"  bson:"price"`
+	Rating       *uint              `json:"rating"  bson:"rating"`
+	Image        *string            `json:"image"  bson:"image"`
+	Quantity     int                `json:"quantity" bson:"quantity"`
 }
 
 type Address struct {

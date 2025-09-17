@@ -188,7 +188,9 @@ func (app *Application) AddToCartModern() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get user ID from JWT token via middleware
 		userID := c.GetString("uid")
+		log.Printf("AddToCartModern called with userID: %s", userID)
 		if userID == "" {
+			log.Println("User not authenticated - no userID in token")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 			return
 		}
@@ -199,9 +201,12 @@ func (app *Application) AddToCartModern() gin.HandlerFunc {
 		}
 
 		if err := c.ShouldBindJSON(&payload); err != nil {
+			log.Printf("Invalid request body: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 			return
 		}
+
+		log.Printf("Received payload: ProductID=%s, Quantity=%d", payload.ProductID, payload.Quantity)
 
 		if payload.Quantity <= 0 {
 			payload.Quantity = 1
@@ -209,6 +214,7 @@ func (app *Application) AddToCartModern() gin.HandlerFunc {
 
 		productID, err := primitive.ObjectIDFromHex(payload.ProductID)
 		if err != nil {
+			log.Printf("Invalid product ID format: %s, error: %v", payload.ProductID, err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
 			return
 		}
@@ -216,13 +222,15 @@ func (app *Application) AddToCartModern() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
+		log.Printf("Calling AddProductToCart with productID=%s, userID=%s, quantity=%d", productID.Hex(), userID, payload.Quantity)
 		err = database.AddProductToCart(ctx, app.prodCollection, app.userCollection, productID, userID, payload.Quantity)
 		if err != nil {
-			log.Println("Error adding to cart:", err)
+			log.Printf("Error adding to cart: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add product to cart"})
 			return
 		}
 
+		log.Printf("Successfully added product %s to cart for user %s", payload.ProductID, userID)
 		c.JSON(http.StatusOK, gin.H{"message": "Successfully added to cart"})
 	}
 }
@@ -231,12 +239,14 @@ func (app *Application) RemoveFromCartModern() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get user ID from JWT token via middleware
 		userID := c.GetString("uid")
+		log.Printf("RemoveFromCartModern called with userID: %s", userID)
 		if userID == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 			return
 		}
 
 		productID := c.Param("id")
+		log.Printf("Removing product ID: %s", productID)
 		if productID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Product ID is required"})
 			return
@@ -244,6 +254,7 @@ func (app *Application) RemoveFromCartModern() gin.HandlerFunc {
 
 		productObjectID, err := primitive.ObjectIDFromHex(productID)
 		if err != nil {
+			log.Printf("Invalid product ID format: %s, error: %v", productID, err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID format"})
 			return
 		}
@@ -251,14 +262,72 @@ func (app *Application) RemoveFromCartModern() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
+		log.Printf("Calling RemoveCartItem with productID=%s, userID=%s", productID, userID)
 		err = database.RemoveCartItem(ctx, app.prodCollection, app.userCollection, productObjectID, userID)
 		if err != nil {
-			log.Println("Error removing from cart:", err)
+			log.Printf("Error removing from cart: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove product from cart"})
 			return
 		}
 
+		log.Printf("Successfully removed product %s from cart for user %s", productID, userID)
 		c.JSON(http.StatusOK, gin.H{"message": "Successfully removed from cart"})
+	}
+}
+
+func (app *Application) UpdateCartItemModern() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get user ID from JWT token via middleware
+		userID := c.GetString("uid")
+		log.Printf("UpdateCartItemModern called with userID: %s", userID)
+		if userID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+			return
+		}
+
+		productID := c.Param("id")
+		log.Printf("Updating product ID: %s", productID)
+		if productID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Product ID is required"})
+			return
+		}
+
+		var payload struct {
+			Quantity int `json:"quantity" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			log.Printf("Invalid request body: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		if payload.Quantity <= 0 {
+			log.Printf("Invalid quantity: %d", payload.Quantity)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Quantity must be greater than 0"})
+			return
+		}
+
+		productObjectID, err := primitive.ObjectIDFromHex(productID)
+		if err != nil {
+			log.Printf("Invalid product ID format: %s, error: %v", productID, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID format"})
+			return
+		}
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		log.Printf("Calling UpdateCartItem with productID=%s, userID=%s, quantity=%d", productID, userID, payload.Quantity)
+		err = database.UpdateCartItem(ctx, app.prodCollection, app.userCollection, productObjectID, userID, payload.Quantity)
+		if err != nil {
+			log.Printf("Error updating cart item: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update cart item"})
+			return
+		}
+
+		log.Printf("Successfully updated product %s quantity to %d for user %s", productID, payload.Quantity, userID)
+		c.JSON(http.StatusOK, gin.H{"message": "Successfully updated cart item"})
 	}
 }
 
