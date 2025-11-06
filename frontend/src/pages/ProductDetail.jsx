@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext'
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { add, instantBuy } = useCart()
+  const { add } = useCart()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
@@ -36,14 +36,6 @@ export default function ProductDetail() {
     }
   }
 
-  const handleInstantBuy = async () => {
-    try {
-      await instantBuy(product.product_id, qty)
-      navigate('/checkout')
-    } catch (error) {
-      alert('Failed to prepare instant buy: ' + error.message)
-    }
-  }
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
@@ -85,7 +77,17 @@ export default function ProductDetail() {
     )
   }
 
-  const images = product.images || [product.image || 'https://via.placeholder.com/600x400?text=Product+Image']
+  // Create fallback image
+  const fallbackImage = `data:image/svg+xml;base64,${btoa(`
+    <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#1f2937"/>
+      <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="#fff" text-anchor="middle" dy=".3em">
+        ${product.product_name || 'Product Image'}
+      </text>
+    </svg>
+  `)}`
+  
+  const images = product.images || [product.image || fallbackImage]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -111,6 +113,10 @@ export default function ProductDetail() {
                     src={images[currentImageIndex]} 
                     alt={product.product_name}
                     className="w-full h-96 object-cover rounded-2xl"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = fallbackImage;
+                    }}
                   />
                   
                   {/* Navigation Arrows */}
@@ -154,6 +160,10 @@ export default function ProductDetail() {
                         src={image} 
                         alt={`${product.product_name} ${index + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = fallbackImage;
+                        }}
                       />
                     </button>
                   ))}
@@ -233,21 +243,12 @@ export default function ProductDetail() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center justify-center gap-3"
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center justify-center gap-3"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                     </svg>
                     Add to Cart
-                  </button>
-                  <button
-                    onClick={handleInstantBuy}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl flex items-center justify-center gap-3"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Instant Buy
                   </button>
                 </div>
               </div>

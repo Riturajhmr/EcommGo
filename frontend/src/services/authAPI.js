@@ -1,8 +1,13 @@
 import api from '../lib/api'
 
 export const register = async (payload) => {
-  const { data } = await api.post('/auth/register', payload)
-  return data
+  try {
+    const { data } = await api.post('/auth/register', payload)
+    return data
+  } catch (error) {
+    console.error('Registration API error:', error.response?.data || error.message)
+    throw error
+  }
 }
 
 export const login = async (payload) => {

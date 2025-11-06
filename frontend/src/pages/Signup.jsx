@@ -17,7 +17,9 @@ export default function Signup() {
       await register(form)
       navigate('/login')
     } catch (err) {
-      setError('Failed to create account')
+      console.error('Registration error:', err)
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to create account'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

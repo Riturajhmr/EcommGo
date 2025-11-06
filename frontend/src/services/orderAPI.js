@@ -1,8 +1,8 @@
 import api from '../lib/api'
 
-export const placeOrder = async (orderData) => {
-  // Use the modern /orders endpoint for checkout
-  const { data } = await api.post('/orders')
+export const placeOrder = async (cartItems) => {
+  // Assignment requirement: POST /api/checkout with {cartItems} → {total, timestamp}
+  const { data } = await api.post('/checkout', { cartItems })
   return data
 }
 

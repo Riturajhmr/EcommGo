@@ -21,9 +21,22 @@ button:disabled {
 
 .animate-scroll {
   animation: scroll 30s linear infinite;
+  will-change: transform;
 }
 
 /* Pause animation on hover */
 .animate-scroll:hover {
   animation-play-state: paused;
+}
+
+/* Optimize background blob animations */
+.animate-pulse {
+  will-change: opacity;
+}
+
+/* Optimize image loading */
+img {
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }

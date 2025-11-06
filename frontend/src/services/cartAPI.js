@@ -14,7 +14,11 @@ export const getCart = async () => {
 export const addToCart = async ({ product_id, quantity = 1 }) => {
   console.log('addToCart API called with:', { product_id, quantity })
   try {
-    const { data } = await api.post('/cart/add', { product_id, quantity })
+    // Assignment requirement: POST /api/cart with {productId, qty}
+    const { data } = await api.post('/cart', { 
+      productId: product_id, 
+      qty: quantity 
+    })
     console.log('addToCart API response:', data)
     return data
   } catch (error) {
@@ -27,6 +31,7 @@ export const addToCart = async ({ product_id, quantity = 1 }) => {
 export const updateCartItem = async ({ id, quantity }) => {
   console.log('updateCartItem API called with:', { id, quantity })
   try {
+    // Use PUT /api/cart/items/:id for updating quantity
     const { data } = await api.put(`/cart/items/${id}`, { quantity })
     console.log('updateCartItem API response:', data)
     return data
@@ -40,7 +45,8 @@ export const updateCartItem = async ({ id, quantity }) => {
 export const removeCartItem = async (id) => {
   console.log('removeCartItem API called with:', { id })
   try {
-    const { data } = await api.delete(`/cart/items/${id}`)
+    // Assignment requirement: DELETE /api/cart/:id
+    const { data } = await api.delete(`/cart/${id}`)
     console.log('removeCartItem API response:', data)
     return data
   } catch (error) {
