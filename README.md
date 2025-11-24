@@ -5,8 +5,8 @@ Full-stack e-commerce shopping cart application built for Vibe Commerce internsh
 ## 🚀 Tech Stack
 
 - **Frontend:** React + Vite
-- **Backend:** Node.js + Express.js
-- **Database:** MongoDB (via Mongoose)
+- **Backend:** Go + Gin
+- **Database:** MongoDB (via Go MongoDB Driver)
 - **Authentication:** JWT
 
 ## 📋 Assignment Requirements
@@ -30,14 +30,15 @@ Full-stack e-commerce shopping cart application built for Vibe Commerce internsh
 ## 📁 Project Structure
 
 ```
-EcommNode/
-├── backend-node/          # Node/Express Backend (Note: Assignment requires /backend, but /backend-node is documented here)
-│   ├── server.js          # Main server file (Port 8080)
-│   ├── controllers/       # API controllers
-│   ├── models/            # MongoDB models
-│   ├── routes/            # API routes
-│   ├── middleware/        # Authentication middleware
-│   └── config/            # Database configuration
+EcommGo/
+├── backend/               # Go/Gin Backend
+│   ├── main.go           # Main server file (Port 8080)
+│   ├── controllers/      # API controllers
+│   ├── models/           # MongoDB models
+│   ├── routes/           # API routes
+│   ├── middleware/       # Authentication middleware
+│   ├── config/           # Database configuration
+│   └── utils/            # Utility functions
 │
 └── frontend/              # React Frontend
     ├── src/
@@ -51,20 +52,19 @@ EcommNode/
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Go 1.21 or higher
 - MongoDB (running locally or connection string)
-- npm or yarn
 
 ### Backend Setup
 
 1. Navigate to backend directory:
 ```bash
-cd backend-node
+cd backend
 ```
 
 2. Install dependencies:
 ```bash
-npm install
+go mod download
 ```
 
 3. Create `.env` file:
@@ -72,11 +72,18 @@ npm install
 PORT=8080
 MONGODB_URI=mongodb://localhost:27017/ecomm
 SECRET_LOVE=your-secret-key-here
+RAZORPAY_KEY=rzp_test_key
 ```
 
 4. Start the server:
 ```bash
-npm start
+go run main.go
+```
+
+Or build and run:
+```bash
+go build -o server main.go
+./server
 ```
 
 Backend will run on `http://localhost:8080`
